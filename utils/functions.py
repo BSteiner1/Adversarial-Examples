@@ -14,7 +14,7 @@ import matplotlib.gridspec as gridspec
 #-----------------------------------------------------------------------
 
 def adversarial_example_class(image, epsilon):
-    
+
     gradient = image.grad.data
 
     # Create adversarial image
@@ -26,8 +26,21 @@ def adversarial_example_class(image, epsilon):
 
 #-------------------------------------------------------------------------
 
-def gen_adversarial_example(image, model):
 
+def image_prediction_and_confidence(image, model):
+    
+    output = model(image.unsqueeze(0))
+    prediction = torch.argmax(output).item()
+
+    # Get the confidence associated with the original prediction
+    image_probabilities = F.softmax(output, dim=1)
+    confidence = image_probabilities[0, prediction].item()
+
+    return prediction, confidence
+#-------------------------------------------------------------------------
+
+def gen_adversarial_example(image, model):
+    
     # Keep gradients
     image.requires_grad = True
 
@@ -56,24 +69,11 @@ def gen_adversarial_example(image, model):
 
 def plot_adv_example(image, model):
 
-    # Original Prediction
-    output = model(image.unsqueeze(0))
-    original_prediction = torch.argmax(output).item()
-
-    # Get the confidence associated with the original prediction
-    image_probabilities = F.softmax(output, dim=1)
-    confidence = image_probabilities[0, original_prediction].item()
+    original_prediction, confidence = image_prediction_and_confidence(image, model)
 
     # Adversarial prediction
     eps, adversarial_image = gen_adversarial_example(image, model)
-
-    # Verify the model's prediction on the adversarial example
-    adversarial_output = model(adversarial_image.unsqueeze(0))
-    adversarial_prediction = torch.argmax(adversarial_output).item()
-
-    # Get the confidence associated with the adversarial prediction
-    adv_image_probabilities = F.softmax(adversarial_output, dim=1)
-    adv_confidence = adv_image_probabilities[0, adversarial_prediction].item()
+    adversarial_prediction, adversarial_confidence = image_prediction_and_confidence(adversarial_image, model)
 
     # Convert tensor to numpy arrays
     original_image_np = image.squeeze().detach().numpy()
@@ -93,13 +93,10 @@ def plot_adv_example(image, model):
     # Noise
     noise = adversarial_image - image
     grad = noise/eps
-    noise_output = model(grad.unsqueeze(0))
-    noise_prediction = torch.argmax(noise_output).item()
+
+    noise_prediction, noise_confidence = image_prediction_and_confidence(grad, model)
     noise_np = noise.squeeze().detach().numpy()
 
-    # Get the confidence associated with the noise prediction
-    noise_probabilities = F.softmax(noise_output, dim=1)
-    noise_confidence = noise_probabilities[0, noise_prediction].item()
 
     axes[1].imshow(noise_np, cmap='gray')
     axes[1].set_title('Noise')
@@ -110,7 +107,7 @@ def plot_adv_example(image, model):
     # Adversarial Example
     axes[2].imshow(adversarial_image_np, cmap='gray')
     axes[2].set_title('Adversarial')
-    axes[2].set_xlabel(f'{labels_dict[adversarial_prediction]}\n{adv_confidence*100:.1f}%')
+    axes[2].set_xlabel(f'{labels_dict[adversarial_prediction]}\n{adversarial_confidence*100:.1f}%')
     axes[2].set_xticks([])
     axes[2].set_yticks([])
 
