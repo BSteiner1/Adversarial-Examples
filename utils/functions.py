@@ -40,30 +40,34 @@ def image_prediction_and_confidence(image, model):
 #-------------------------------------------------------------------------
 
 def gen_adversarial_example(image, model):
-    
-    # Keep gradients
-    image.requires_grad = True
 
-    # Original image class
-    output = model(image.unsqueeze(0))
-    original_prediction = torch.argmax(output).item()
+  # Keep gradients
+  image.requires_grad = True
 
-    # Calculate the loss
-    loss = F.cross_entropy(output, torch.tensor([original_prediction]))
-    model.zero_grad()
+  # Original image class
+  output = model(image.unsqueeze(0))
+  original_prediction = torch.argmax(output).item()
 
-    # Backward pass to compute the gradient of the loss with respect to the input image
-    loss.backward()
-    gradient = image.grad.data
+  # Calculate the loss
+  loss = F.cross_entropy(output, torch.tensor([original_prediction]))
+  model.zero_grad()
 
-    # Increment epsilon until classification is wrong
-    epsilon = 0
-    while adversarial_example_class(image, epsilon, model) == original_prediction:
-        epsilon += 0.01
+  # Backward pass to compute the gradient of the loss with respect to the input image
+  loss.backward()
+  gradient = image.grad.data
 
-    adversarial_example = image + (epsilon * gradient.sign())
+  # Increment epsilon until classification is wrong
+  epsilon = 0
+  while adversarial_example_class(image, epsilon, gradient) == original_prediction:
+    epsilon += 0.01
+    #print(epsilon)
+    if epsilon > 2:
+      return False
 
-    return np.round(epsilon, 2), adversarial_example
+  adversarial_example = image + (epsilon * gradient.sign())
+  adversarial_prediction = adversarial_example_class(image, epsilon, gradient)
+
+  return np.round(epsilon, 2), adversarial_example, adversarial_prediction
 
 #-------------------------------------------------------------------------
 
