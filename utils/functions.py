@@ -13,7 +13,7 @@ import matplotlib.gridspec as gridspec
 
 #-----------------------------------------------------------------------
 
-def adversarial_example_class(image, epsilon, gradient):
+def adversarial_example_class(image, epsilon, gradient, model):
 
   # Create adversarial image
   adversarial_example = image + (epsilon * gradient.sign())
@@ -55,14 +55,14 @@ def gen_adversarial_example(image, model):
 
   # Increment epsilon until classification is wrong
   epsilon = 0
-  while adversarial_example_class(image, epsilon, gradient) == original_prediction:
+  while adversarial_example_class(image, epsilon, gradient, model) == original_prediction:
     epsilon += 0.01
     #print(epsilon)
     if epsilon > 2:
       return False
 
   adversarial_example = image + (epsilon * gradient.sign())
-  adversarial_prediction = adversarial_example_class(image, epsilon, model)
+  adversarial_prediction = adversarial_example_class(image, epsilon, gradient, model)
 
   return np.round(epsilon, 2), adversarial_example, adversarial_prediction
 
