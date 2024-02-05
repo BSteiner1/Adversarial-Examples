@@ -13,7 +13,7 @@ import matplotlib.gridspec as gridspec
 
 #-----------------------------------------------------------------------
 
-def adversarial_example_class(image, epsilon):
+def adversarial_example_class(image, epsilon, model):
 
     gradient = image.grad.data
 
