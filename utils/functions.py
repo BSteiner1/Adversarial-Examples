@@ -13,22 +13,19 @@ import matplotlib.gridspec as gridspec
 
 #-----------------------------------------------------------------------
 
-def adversarial_example_class(image, epsilon, model):
+def adversarial_example_class(image, epsilon, gradient):
 
-    gradient = image.grad.data
+  # Create adversarial image
+  adversarial_example = image + (epsilon * gradient.sign())
+  adversarial_output = model(adversarial_example.unsqueeze(0))
+  adversarial_prediction = torch.argmax(adversarial_output).item()
 
-    # Create adversarial image
-    adversarial_example = image + (epsilon * gradient.sign())
-    adversarial_output = model(adversarial_example.unsqueeze(0))
-    adversarial_prediction = torch.argmax(adversarial_output).item()
-
-    return adversarial_prediction
+  return adversarial_prediction
 
 #-------------------------------------------------------------------------
 
-
 def image_prediction_and_confidence(image, model):
-    
+
     output = model(image.unsqueeze(0))
     prediction = torch.argmax(output).item()
 
