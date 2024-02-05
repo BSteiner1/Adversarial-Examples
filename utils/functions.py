@@ -62,7 +62,7 @@ def gen_adversarial_example(image, model):
       return False
 
   adversarial_example = image + (epsilon * gradient.sign())
-  adversarial_prediction = adversarial_example_class(image, epsilon, gradient)
+  adversarial_prediction = adversarial_example_class(image, epsilon, model)
 
   return np.round(epsilon, 2), adversarial_example, adversarial_prediction
 
