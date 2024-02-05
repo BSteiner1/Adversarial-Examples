@@ -58,7 +58,7 @@ def gen_adversarial_example(image, model):
 
     # Increment epsilon until classification is wrong
     epsilon = 0
-    while adversarial_example_class(image, epsilon) == original_prediction:
+    while adversarial_example_class(image, epsilon, model) == original_prediction:
         epsilon += 0.01
 
     adversarial_example = image + (epsilon * gradient.sign())
